@@ -9,20 +9,29 @@ def convert_to_epub(
     book_title: str,
     author: str,
     cover_path: Optional[Path] = None,
+    description: str = "",
 ) -> Path:
+    output_path.parent.mkdir(parents=True, exist_ok=True)
+
+    yaml_metadata = f"""---
+title: {book_title}
+creator: {author}
+"""
+    if description:
+        yaml_metadata += f"description: {description}\n"
+    yaml_metadata += "---\n\n"
+
+    final_content = yaml_metadata + markdown_content
+
     extra_args = [
         "--standalone",
-        f"--metadata=title:{book_title}",
-        f"--metadata=creator:{author}",
     ]
 
     if cover_path and cover_path.exists():
         extra_args.append(f"--epub-cover-image={str(cover_path)}")
 
-    output_path.parent.mkdir(parents=True, exist_ok=True)
-
     pypandoc.convert_text(
-        source=markdown_content,
+        source=final_content,
         format="md",
         to="epub",
         outputfile=str(output_path),

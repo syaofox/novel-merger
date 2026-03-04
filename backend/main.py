@@ -105,6 +105,7 @@ async def merge_novel(
             book_title=book_title,
             author=author,
             cover_path=cover_path,
+            description=description,
         )
 
         from urllib.parse import quote
