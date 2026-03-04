@@ -7,7 +7,7 @@ export default defineConfig({
     port: 5173,
     proxy: {
       '/api': {
-        target: 'http://novel-backend:8000',
+        target: 'http://novel-backend-dev:8000',
         changeOrigin: true,
       }
     }

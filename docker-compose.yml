@@ -3,24 +3,23 @@ services:
     build:
       context: ./backend
       dockerfile: Dockerfile
-    container_name: novel-backend
-    restart: unless-stopped
+    container_name: novel-backend-dev
+    volumes:
+      - ./backend:/app
+    ports:
+      - "8000:8000"
     environment:
-      - ENV=production
-    healthcheck:
-      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/docs')"]
-      interval: 2s
-      timeout: 10s
-      retries: 3
+      - ENV=development
 
   frontend:
     build:
       context: ./frontend
       dockerfile: Dockerfile
-    container_name: novel-frontend
-    restart: unless-stopped
+    container_name: novel-frontend-dev
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
     ports:
-      - "8080:80"
+      - "5173:5173"
     depends_on:
-      backend:
-        condition: service_healthy
+      - backend
