@@ -50,14 +50,15 @@ docker compose down
 
 ### 测试命令
 
-> 注意：当前项目尚未配置单元测试。
+> ⚠️ 重要：测试必须使用 Docker 容器启动来测试，因为本地没有安装 Node.js、Python 等环境依赖。
 
 ```bash
-# 前端测试 (如配置)
-npm run test
+# 启动容器后，在宿主机访问测试
+# 前端: http://localhost:5173
+# 后端: http://localhost:8000
 
-# 后端测试 (如配置)
-pytest
+# 后端日志查看
+docker compose logs backend -f
 ```
 
 ---
@@ -212,6 +213,7 @@ novel-merger/
 2. **跨域**: 前端通过 Vite 代理访问后端，路径为 `/api/*`
 3. **容器网络**: Docker中前端访问后端应使用容器名 `novel-backend:8000`
 4. **临时文件**: 后端使用 `tempfile` 处理上传文件，请求结束后自动清理
+5. **事件冒泡**: 父元素绑定点击事件时，子元素需添加 `@click.stop` 阻止事件冒泡，否则点击子元素会触发父元素事件
 
 ---
 
