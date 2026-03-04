@@ -18,7 +18,12 @@
       </el-form>
     </el-card>
 
-    <el-card class="upload-card">
+    <el-card class="upload-card" :class="{ 'is-dragging': isDragging }"
+      @dragenter="handleDragEnter"
+      @dragover="handleDragOver"
+      @dragleave="handleDragLeave"
+      @drop="handleDrop"
+    >
       <template #header>
         <div class="card-header">
           <span>上传章节文件</span>
@@ -86,6 +91,7 @@ import axios from 'axios'
 
 const fileInput = ref(null)
 const fileList = ref([])
+const isDragging = ref(false)
 const previewVisible = ref(false)
 const previewContent = ref('')
 const previewLoading = ref(false)
@@ -115,6 +121,39 @@ const handleFileChange = (event) => {
     }
   }
   event.target.value = ''
+}
+
+const handleDragEnter = (e) => {
+  e.preventDefault()
+  isDragging.value = true
+}
+
+const handleDragOver = (e) => {
+  e.preventDefault()
+}
+
+const handleDragLeave = (e) => {
+  e.preventDefault()
+  if (!e.currentTarget.contains(e.relatedTarget)) {
+    isDragging.value = false
+  }
+}
+
+const handleDrop = (e) => {
+  e.preventDefault()
+  isDragging.value = false
+  const files = e.dataTransfer.files
+  for (const file of files) {
+    const ext = file.name.split('.').pop().toLowerCase()
+    if (ext === 'txt' || ext === 'md') {
+      fileList.value.push({
+        name: file.name,
+        file: file
+      })
+    } else {
+      ElMessage.warning(`不支持的文件格式: ${file.name}`)
+    }
+  }
 }
 
 const removeFile = (index) => {
@@ -209,6 +248,11 @@ const handleMerge = async () => {
 
 .upload-card {
   margin-bottom: 20px;
+}
+
+.upload-card.is-dragging {
+  border: 2px dashed #409eff;
+  background-color: #ecf5ff;
 }
 
 .card-header {
