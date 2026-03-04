@@ -9,6 +9,7 @@ from fastapi.responses import FileResponse, StreamingResponse
 from typing import List, Optional
 import tempfile
 import os
+import re
 import shutil
 from pathlib import Path
 
@@ -25,6 +26,16 @@ from core.text_processor import (
 )
 from core.converter import convert_to_epub
 from core.cover_generator import create_cover_image, create_cover_with_image
+
+
+def clean_metadata_text(text: str) -> str:
+    if not text:
+        return ""
+    text = re.sub(r"[\r\n]+", "", text)
+    text = text.strip()
+    text = re.sub(r"\s+", " ", text)
+    return text
+
 
 app = FastAPI(title="小说合并工具")
 api_router = APIRouter()
@@ -55,6 +66,11 @@ async def merge_novel(
 ):
     with tempfile.TemporaryDirectory() as temp_dir:
         temp_path = Path(temp_dir)
+
+        book_title = clean_metadata_text(book_title)
+        author = clean_metadata_text(author)
+        description = clean_metadata_text(description)
+
         uploaded_files = []
 
         for upload_file in files:
