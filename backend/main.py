@@ -23,6 +23,7 @@ from core.text_processor import (
     convert_to_markdown_headers,
     clean_content,
     split_into_chapters,
+    sanitize_for_xml,
 )
 from core.converter import convert_to_epub
 from core.cover_generator import create_cover_image, create_cover_with_image
@@ -91,6 +92,7 @@ async def merge_novel(
         all_content = []
         for file_path in sorted_files:
             content = read_file_content(file_path)
+            content = sanitize_for_xml(content)
             content = clean_content(content)
             content = convert_to_markdown_headers(content)
             all_content.append(content)
@@ -163,6 +165,7 @@ async def preview_merge(
         all_content = []
         for file_path in sorted_files:
             content = read_file_content(file_path)
+            content = sanitize_for_xml(content)
             content = clean_content(content)
             content = convert_to_markdown_headers(content)
             all_content.append(content)
