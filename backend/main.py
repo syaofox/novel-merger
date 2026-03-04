@@ -3,7 +3,7 @@ import logging
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
 
-from fastapi import FastAPI, UploadFile, File, Form
+from fastapi import FastAPI, UploadFile, File, Form, APIRouter
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, StreamingResponse
 from typing import List, Optional
@@ -27,6 +27,7 @@ from core.converter import convert_to_epub
 from core.cover_generator import create_cover_image
 
 app = FastAPI(title="小说合并工具")
+api_router = APIRouter()
 
 app.add_middleware(
     CORSMiddleware,
@@ -42,7 +43,7 @@ async def root():
     return {"message": "小说合并工具 API"}
 
 
-@app.post("/merge")
+@api_router.post("/merge")
 async def merge_novel(
     files: List[UploadFile] = File(...),
     book_title: str = Form("未命名小说"),
@@ -113,7 +114,7 @@ async def merge_novel(
         )
 
 
-@app.post("/preview")
+@api_router.post("/preview")
 async def preview_merge(
     files: List[UploadFile] = File(...), order: Optional[str] = Form(None)
 ):
@@ -144,3 +145,6 @@ async def preview_merge(
         merged_content = "\n\n".join(all_content)
 
         return {"content": merged_content[:5000]}
+
+
+app.include_router(api_router, prefix="/api")
