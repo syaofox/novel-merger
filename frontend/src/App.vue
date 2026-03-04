@@ -66,7 +66,7 @@
     >
       <template #header>
         <div class="card-header">
-          <span>上传章节文件</span>
+          <span>上传章节文件(点击可浏览本地文件)</span>
           <input
             ref="fileInput"
             type="file"
