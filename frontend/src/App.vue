@@ -67,6 +67,17 @@
       <template #header>
         <div class="card-header">
           <span>上传章节文件(点击可浏览本地文件)</span>
+          <div class="sort-controls" v-if="fileList.length > 1" @click.stop>
+            <el-select v-model="sortType" placeholder="排序方式" style="width: 120px" @change="sortFiles">
+              <el-option label="字母顺序" value="alphabet" />
+              <el-option label="数字顺序" value="number" />
+              <el-option label="中文数字" value="chinese" />
+            </el-select>
+            <el-radio-group v-model="sortOrder" size="small" @change="sortFiles">
+              <el-radio-button value="asc">升序</el-radio-button>
+              <el-radio-button value="desc">降序</el-radio-button>
+            </el-radio-group>
+          </div>
           <input
             ref="fileInput"
             type="file"
@@ -131,6 +142,81 @@ import axios from 'axios'
 const fileInput = ref(null)
 const fileList = ref([])
 const isDragging = ref(false)
+const sortType = ref('alphabet')
+const sortOrder = ref('asc')
+
+const chineseNumberMap = {
+    '一': 1, '二': 2, '三': 3, '四': 4, '五': 5,
+    '六': 6, '七': 7, '八': 8, '九': 9, '十': 10
+}
+
+const parseChineseNumber = (str) => {
+    if (!str) return 0
+    if (str.length === 1) return chineseNumberMap[str] || 0
+    
+    let result = 0
+    let temp = 0
+    
+    for (let i = 0; i < str.length; i++) {
+        const char = str[i]
+        const num = chineseNumberMap[char]
+        
+        if (num) {
+            if (num === 10) {
+                if (temp === 0) temp = 10
+                else temp *= 10
+            } else {
+                temp += num
+            }
+        }
+    }
+    
+    return temp || result
+}
+
+const extractNumber = (filename) => {
+    const nameWithoutExt = filename.replace(/\.(txt|md)$/i, '')
+    const numbers = nameWithoutExt.match(/\d+/g)
+    if (numbers && numbers.length > 0) {
+        return parseInt(numbers[0], 10)
+    }
+    return Infinity
+}
+
+const extractChineseNumber = (filename) => {
+    const nameWithoutExt = filename.replace(/\.(txt|md)$/i, '')
+    const match = nameWithoutExt.match(/([一二三四五六七八九十]+)[章卷节部]?/)
+    if (match) {
+        return parseChineseNumber(match[1])
+    }
+    return Infinity
+}
+
+const sortFiles = () => {
+    const type = sortType.value
+    const order = sortOrder.value
+    
+    const sorted = [...fileList.value].sort((a, b) => {
+        let valA, valB
+        
+        if (type === 'alphabet') {
+            valA = a.name.toLowerCase()
+            valB = b.name.toLowerCase()
+        } else if (type === 'number') {
+            valA = extractNumber(a.name)
+            valB = extractNumber(b.name)
+        } else if (type === 'chinese') {
+            valA = extractChineseNumber(a.name)
+            valB = extractChineseNumber(b.name)
+        }
+        
+        if (valA < valB) return order === 'asc' ? -1 : 1
+        if (valA > valB) return order === 'asc' ? 1 : -1
+        return 0
+    })
+    
+    fileList.value = sorted
+}
 const coverImageRef = ref(null)
 const coverImage = ref(null)
 const coverImageFile = ref(null)
@@ -415,6 +501,12 @@ const handleMerge = async () => {
   display: flex;
   justify-content: space-between;
   align-items: center;
+}
+
+.sort-controls {
+  display: flex;
+  align-items: center;
+  gap: 10px;
 }
 
 .file-list {
