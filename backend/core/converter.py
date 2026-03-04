@@ -1,6 +1,7 @@
 import pypandoc
 from pathlib import Path
 from typing import Optional
+import os
 
 
 def convert_to_epub(
@@ -13,18 +14,22 @@ def convert_to_epub(
 ) -> Path:
     output_path.parent.mkdir(parents=True, exist_ok=True)
 
+    template_path = Path(__file__).parent.parent / "templates" / "epub3.html"
+
     yaml_metadata = f"""---
 title: {book_title}
+author: {author}
 creator: {author}
 """
     if description:
-        yaml_metadata += f"description: {description}\n"
+        yaml_metadata += f"subtitle: {description}\n"
     yaml_metadata += "---\n\n"
 
     final_content = yaml_metadata + markdown_content
 
     extra_args = [
         "--standalone",
+        f"--template={template_path}",
     ]
 
     if cover_path and cover_path.exists():
