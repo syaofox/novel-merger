@@ -8,6 +8,7 @@
       <el-col :span="form.generateCover ? 8 : 0">
         <el-card class="cover-card" :class="{ 'is-dragging': isCoverDragging }"
           v-show="form.generateCover"
+          @click="handleCoverUpload"
           @dragenter="handleCoverDragEnter"
           @dragover="handleCoverDragOver"
           @dragleave="handleCoverDragLeave"
@@ -16,7 +17,6 @@
           <template #header>
             <div class="card-header">
               <span>上传封面图片</span>
-              <el-button size="small" @click="handleCoverUpload">选择图片</el-button>
               <input
                 ref="coverImageRef"
                 type="file"
@@ -29,7 +29,7 @@
 
           <div v-if="coverImage" class="cover-preview">
             <img :src="coverImage" alt="封面预览" />
-            <el-button type="danger" size="small" circle @click="removeCover">
+            <el-button type="danger" size="small" circle @click.stop="removeCover">
               <el-icon><Delete /></el-icon>
             </el-button>
           </div>
@@ -58,6 +58,7 @@
     </el-row>
 
     <el-card class="upload-card" :class="{ 'is-dragging': isDragging }"
+      @click="handleUpload"
       @dragenter="handleDragEnter"
       @dragover="handleDragOver"
       @dragleave="handleDragLeave"
@@ -66,7 +67,6 @@
       <template #header>
         <div class="card-header">
           <span>上传章节文件</span>
-          <el-button type="primary" @click="handleUpload">选择文件</el-button>
           <input
             ref="fileInput"
             type="file"
@@ -78,7 +78,7 @@
         </div>
       </template>
 
-      <el-empty v-if="fileList.length === 0" description="请上传TXT或Markdown文件" />
+      <el-empty v-if="fileList.length === 0" description="点击或拖拽上传TXT或Markdown文件" />
       
       <div v-else class="file-list">
         <draggable
@@ -96,7 +96,7 @@
                 type="danger"
                 size="small"
                 circle
-                @click="removeFile(index)"
+                @click.stop="removeFile(index)"
               >
                 <el-icon><Delete /></el-icon>
               </el-button>
