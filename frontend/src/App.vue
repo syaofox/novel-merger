@@ -12,10 +12,43 @@
         <el-form-item label="作者">
           <el-input v-model="form.author" placeholder="请输入作者名" />
         </el-form-item>
+        <el-form-item label="简介">
+          <el-input v-model="form.description" type="textarea" :rows="3" placeholder="请输入小说简介（可选）" />
+        </el-form-item>
         <el-form-item label="生成封面">
           <el-switch v-model="form.generateCover" />
         </el-form-item>
       </el-form>
+    </el-card>
+
+    <el-card class="cover-card" :class="{ 'is-dragging': isCoverDragging }"
+      v-if="form.generateCover"
+      @dragenter="handleCoverDragEnter"
+      @dragover="handleCoverDragOver"
+      @dragleave="handleCoverDragLeave"
+      @drop="handleCoverDrop"
+    >
+      <template #header>
+        <div class="card-header">
+          <span>上传封面图片</span>
+          <el-button size="small" @click="handleCoverUpload">选择图片</el-button>
+          <input
+            ref="coverImageRef"
+            type="file"
+            accept="image/*"
+            style="display: none"
+            @change="handleCoverChange"
+          />
+        </div>
+      </template>
+
+      <div v-if="coverImage" class="cover-preview">
+        <img :src="coverImage" alt="封面预览" />
+        <el-button type="danger" size="small" circle @click="removeCover">
+          <el-icon><Delete /></el-icon>
+        </el-button>
+      </div>
+      <el-empty v-else description="点击或拖拽上传封面图片（可选）" />
     </el-card>
 
     <el-card class="upload-card" :class="{ 'is-dragging': isDragging }"
@@ -92,6 +125,10 @@ import axios from 'axios'
 const fileInput = ref(null)
 const fileList = ref([])
 const isDragging = ref(false)
+const coverImageRef = ref(null)
+const coverImage = ref(null)
+const coverImageFile = ref(null)
+const isCoverDragging = ref(false)
 const previewVisible = ref(false)
 const previewContent = ref('')
 const previewLoading = ref(false)
@@ -100,6 +137,7 @@ const mergeLoading = ref(false)
 const form = reactive({
   bookTitle: '',
   author: '',
+  description: '',
   generateCover: true
 })
 
@@ -156,6 +194,59 @@ const handleDrop = (e) => {
   }
 }
 
+const handleCoverUpload = () => {
+  coverImageRef.value.click()
+}
+
+const handleCoverChange = (event) => {
+  const file = event.target.files[0]
+  if (file) {
+    processCoverFile(file)
+  }
+  event.target.value = ''
+}
+
+const handleCoverDragEnter = (e) => {
+  e.preventDefault()
+  isCoverDragging.value = true
+}
+
+const handleCoverDragOver = (e) => {
+  e.preventDefault()
+}
+
+const handleCoverDragLeave = (e) => {
+  e.preventDefault()
+  if (!e.currentTarget.contains(e.relatedTarget)) {
+    isCoverDragging.value = false
+  }
+}
+
+const handleCoverDrop = (e) => {
+  e.preventDefault()
+  isCoverDragging.value = false
+  const file = e.dataTransfer.files[0]
+  if (file && file.type.startsWith('image/')) {
+    processCoverFile(file)
+  } else {
+    ElMessage.warning('请上传图片文件')
+  }
+}
+
+const processCoverFile = (file) => {
+  const reader = new FileReader()
+  reader.onload = (e) => {
+    coverImage.value = e.target.result
+    coverImageFile.value = file
+  }
+  reader.readAsDataURL(file)
+}
+
+const removeCover = () => {
+  coverImage.value = null
+  coverImageFile.value = null
+}
+
 const removeFile = (index) => {
   fileList.value.splice(index, 1)
 }
@@ -207,7 +298,12 @@ const handleMerge = async () => {
   
   formData.append('book_title', form.bookTitle)
   formData.append('author', form.author || '未知作者')
+  formData.append('description', form.description || '')
   formData.append('generate_cover', form.generateCover)
+  
+  if (coverImageFile.value) {
+    formData.append('cover_image', coverImageFile.value)
+  }
   
   const order = fileList.value.map((_, i) => i).join(',')
   formData.append('order', order)
@@ -253,6 +349,37 @@ const handleMerge = async () => {
 .upload-card.is-dragging {
   border: 2px dashed #409eff;
   background-color: #ecf5ff;
+}
+
+.cover-card {
+  margin-bottom: 20px;
+}
+
+.cover-card.is-dragging {
+  border: 2px dashed #409eff;
+  background-color: #ecf5ff;
+}
+
+.cover-preview {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  position: relative;
+}
+
+.cover-preview img {
+  max-width: 200px;
+  max-height: 280px;
+  object-fit: contain;
+  border-radius: 4px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.cover-preview .el-button {
+  position: absolute;
+  top: -10px;
+  right: calc(50% - 110px);
 }
 
 .card-header {

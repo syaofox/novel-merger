@@ -24,7 +24,7 @@ from core.text_processor import (
     split_into_chapters,
 )
 from core.converter import convert_to_epub
-from core.cover_generator import create_cover_image
+from core.cover_generator import create_cover_image, create_cover_with_image
 
 app = FastAPI(title="小说合并工具")
 api_router = APIRouter()
@@ -48,8 +48,10 @@ async def merge_novel(
     files: List[UploadFile] = File(...),
     book_title: str = Form("未命名小说"),
     author: str = Form("未知作者"),
+    description: str = Form(""),
     order: Optional[str] = Form(None),
     generate_cover: bool = Form(True),
+    cover_image: Optional[UploadFile] = None,
 ):
     with tempfile.TemporaryDirectory() as temp_dir:
         temp_path = Path(temp_dir)
@@ -86,7 +88,13 @@ async def merge_novel(
         if generate_cover:
             try:
                 cover_path = temp_path / "cover.jpg"
-                create_cover_image(book_title, author, cover_path)
+                if cover_image:
+                    image_content = await cover_image.read()
+                    image_path = temp_path / "uploaded_cover.jpg"
+                    image_path.write_bytes(image_content)
+                    create_cover_with_image(image_path, cover_path)
+                else:
+                    create_cover_image(book_title, author, cover_path, description)
             except Exception as e:
                 logger.error(f"Cover creation failed: {e}")
                 cover_path = None
