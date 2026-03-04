@@ -1,7 +1,7 @@
 <template>
   <div class="container">
     <el-card class="title-card">
-      <h1>小说合并工具</h1>
+      <h1>小说转换合并工具</h1>
     </el-card>
 
     <el-row :gutter="20" class="settings-row">

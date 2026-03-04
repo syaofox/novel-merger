@@ -38,7 +38,7 @@ def clean_metadata_text(text: str) -> str:
     return text
 
 
-app = FastAPI(title="小说合并工具")
+app = FastAPI(title="小说转换合并工具")
 api_router = APIRouter()
 
 app.add_middleware(
@@ -52,7 +52,7 @@ app.add_middleware(
 
 @app.get("/")
 async def root():
-    return {"message": "小说合并工具 API"}
+    return {"message": "小说转换合并工具 API"}
 
 
 @api_router.post("/merge")
